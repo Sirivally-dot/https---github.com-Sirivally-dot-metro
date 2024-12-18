@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyderabad Metro Fare Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>Hyderabad Metro Fare Calculator</h1>
+    </header>
+    <div class="container">
+        <div class="stations-list">
+            <h2>Metro Lines and Stations</h2>
+            <div>
+                <h3>Red Line</h3>
+                <ul>
+                    <li>Miyapur</li>
+                    <li>JNTU</li>
+                    <li>Kukatpally</li>
+                    <li>Erragadda</li>
+                    <li>ESI Hospital</li>
+                    <li>Ameerpet (Interchange)</li>
+                    <li>Punjagutta</li>
+                    <li>Nampally</li>
+                    <li>Osmania Medical College</li>
+                    <li>MG Bus Station (Interchange)</li>
+                    <li>Dilsukhnagar</li>
+                    <li>LB Nagar</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Blue Line</h3>
+                <ul>
+                    <li>Raidurg</li>
+                    <li>Hitech City</li>
+                    <li>Madhapur</li>
+                    <li>Jubilee Hills</li>
+                    <li>Ameerpet (Interchange)</li>
+                    <li>Begumpet</li>
+                    <li>Paradise (Interchange)</li>
+                    <li>Uppal</li>
+                    <li>Nagole</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Green Line</h3>
+                <ul>
+                    <li>Paradise (Interchange)</li>
+                    <li>RTC X Roads</li>
+                    <li>Narayanguda</li>
+                    <li>Sulthan Bazaar</li>
+                    <li>MG Bus Station (Interchange)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="fare-calculator">
+            <h2>Route Details</h2>
+            <label for="start">Start Station:</label>
+            <select id="start"></select>
+
+            <label for="end">End Station:</label>
+            <select id="end"></select>
+
+            <button onclick="calculateFare()">Calculate Fare</button>
+            <div id="output"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
