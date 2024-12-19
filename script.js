@@ -1,22 +1,88 @@
-const stations = {
-    "Red Line": ["Miyapur", "JNTU", "Kukatpally", "Erragadda", "ESI Hospital", "Ameerpet", "Punjagutta", "Nampally", "Osmania Medical College", "MG Bus Station", "Dilsukhnagar", "LB Nagar"],
-    "Blue Line": ["Raidurg", "Hitech City", "Madhapur", "Jubilee Hills", "Ameerpet", "Begumpet", "Paradise", "Uppal", "Nagole"],
-    "Green Line": ["Paradise", "RTC X Roads", "Narayanguda", "Sulthan Bazaar", "MG Bus Station"]
-};
-
-const interchangeStations = {
-    "Ameerpet": ["Red Line", "Blue Line"],
-    "Paradise": ["Blue Line", "Green Line"],
-    "MG Bus Station": ["Red Line", "Green Line"]
+// Metro system represented as a graph
+const metroGraph = {
+    "Miyapur": { "JNTU": 1 },
+    "JNTU": { "Miyapur": 1, "Kukatpally": 1 },
+    "Kukatpally": { "JNTU": 1, "Erragadda": 1 },
+    "Erragadda": { "Kukatpally": 1, "ESI Hospital": 1 },
+    "ESI Hospital": { "Erragadda": 1, "Ameerpet": 1 },
+    "Ameerpet": { "ESI Hospital": 1, "Punjagutta": 1, "Begumpet": 1, "Jubilee Hills": 1 },
+    "Punjagutta": { "Ameerpet": 1, "Nampally": 1 },
+    "Nampally": { "Punjagutta": 1, "Osmania Medical College": 1 },
+    "Osmania Medical College": { "Nampally": 1, "MG Bus Station": 1 },
+    "MG Bus Station": { "Osmania Medical College": 1, "Dilsukhnagar": 1, "Sulthan Bazaar": 1 },
+    "Dilsukhnagar": { "MG Bus Station": 1, "LB Nagar": 1 },
+    "LB Nagar": { "Dilsukhnagar": 1 },
+    "Raidurg": { "Hitech City": 1 },
+    "Hitech City": { "Raidurg": 1, "Madhapur": 1 },
+    "Madhapur": { "Hitech City": 1, "Jubilee Hills": 1 },
+    "Jubilee Hills": { "Madhapur": 1, "Ameerpet": 1 },
+    "Begumpet": { "Ameerpet": 1, "Paradise": 1 },
+    "Paradise": { "Begumpet": 1, "RTC X Roads": 1 },
+    "RTC X Roads": { "Paradise": 1, "Narayanguda": 1 },
+    "Narayanguda": { "RTC X Roads": 1, "Sulthan Bazaar": 1 },
+    "Sulthan Bazaar": { "Narayanguda": 1, "MG Bus Station": 1 },
+    "Uppal": { "Nagole": 1 },
+    "Nagole": { "Uppal": 1 },
 };
 
 const farePerKm = 10;
 
+// Dijkstra's Algorithm
+function dijkstra(graph, start, end) {
+    const distances = {};
+    const prev = {};
+    const visited = new Set();
+    const priorityQueue = [];
+
+    // Initialize distances to Infinity, except start node
+    for (const node in graph) {
+        distances[node] = Infinity;
+        prev[node] = null;
+    }
+    distances[start] = 0;
+
+    // Push start node into the priority queue
+    priorityQueue.push({ node: start, distance: 0 });
+
+    while (priorityQueue.length > 0) {
+        // Sort queue by distance and dequeue the nearest node
+        priorityQueue.sort((a, b) => a.distance - b.distance);
+        const { node: currentNode } = priorityQueue.shift();
+
+        if (visited.has(currentNode)) continue;
+        visited.add(currentNode);
+
+        // If we reach the destination, stop
+        if (currentNode === end) break;
+
+        // Update distances for neighboring nodes
+        for (const neighbor in graph[currentNode]) {
+            const newDist = distances[currentNode] + graph[currentNode][neighbor];
+            if (newDist < distances[neighbor]) {
+                distances[neighbor] = newDist;
+                prev[neighbor] = currentNode;
+                priorityQueue.push({ node: neighbor, distance: newDist });
+            }
+        }
+    }
+
+    // Backtrack to find the path
+    const path = [];
+    let curr = end;
+    while (curr) {
+        path.unshift(curr);
+        curr = prev[curr];
+    }
+
+    return { distance: distances[end], path };
+}
+
+// Populate dropdowns
 window.onload = () => {
     const startSelect = document.getElementById("start");
     const endSelect = document.getElementById("end");
 
-    Object.values(stations).flat().forEach(station => {
+    for (const station in metroGraph) {
         const option1 = document.createElement("option");
         option1.value = station;
         option1.textContent = station;
@@ -25,7 +91,7 @@ window.onload = () => {
 
         startSelect.appendChild(option1);
         endSelect.appendChild(option2);
-    });
+    }
 };
 
 function calculateFare() {
@@ -38,25 +104,14 @@ function calculateFare() {
         return;
     }
 
-    const lineStart = Object.keys(stations).find(line => stations[line].includes(start));
-    const lineEnd = Object.keys(stations).find(line => stations[line].includes(end));
+    const { distance, path } = dijkstra(metroGraph, start, end);
 
-    let fare = Math.abs(Object.values(stations).flat().indexOf(end) - Object.values(stations).flat().indexOf(start)) * farePerKm;
-    let interchangeInfo = "";
-    let travelLinesInfo = `<li><strong>Travel Lines:</strong> ${lineStart} to ${lineEnd}</li>`;
-
-    if (lineStart !== lineEnd) {
-        const interchanges = Object.keys(interchangeStations).filter(station =>
-            stations[lineStart].includes(station) && stations[lineEnd].includes(station)
-        );
-        if (interchanges.length > 0) {
-            interchangeInfo = `<li><strong>Interchange Station:</strong> ${interchanges.join(", ")}</li>`;
-        } else {
-            interchangeInfo = "<li>No Interchange Required</li>";
-        }
-    } else {
-        interchangeInfo = "<li>No Interchange Required</li>";
+    if (distance === Infinity) {
+        output.innerHTML = "<p>No path found between the selected stations.</p>";
+        return;
     }
+
+    const fare = distance * farePerKm;
 
     output.innerHTML = `
         <div class="ticket-card">
@@ -64,11 +119,11 @@ function calculateFare() {
             <ul>
                 <li><strong>Start Station:</strong> ${start}</li>
                 <li><strong>End Station:</strong> ${end}</li>
-                ${travelLinesInfo}
-                ${interchangeInfo}
+                <li><strong>Path:</strong> ${path.join(" → ")}</li>
                 <li class="fare-amount"><strong>Total Fare:</strong> ₹${fare}</li>
             </ul>
             <p>Thank you for using Hyderabad Metro!</p>
         </div>
     `;
 }
+
